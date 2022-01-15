@@ -1,9 +1,8 @@
 <template>
 	<div class="page two">
-		<h3>Payment Info:</h3>
 		<input-vue
 			label="Payment Type"
-			id="0"
+			id="10"
 			:focus="focus"
 			v-model:value="paymentType"
 			:value="paymentType"
@@ -13,7 +12,7 @@
 				<div class="icon"><i class="fas fa-money-check"></i></div>
 			</template>
 			<template v-slot:dropValue>
-				<span class="value">
+				<span @click="showSelect = !showSelect" class="value">
 					{{ paymentType }}
 				</span>
 			</template>
@@ -24,11 +23,7 @@
 			</template>
 		</input-vue>
 		<div class="select" v-if="showSelect">
-			<h4
-				class="sel"
-				v-for="(type, index) in paymentOptions"
-				:key="index"
-			>
+			<h4 class="sel" v-for="(type, index) in paymentOptions" :key="index">
 				<span @click="selectType(type)">{{ type }}</span>
 			</h4>
 		</div>
@@ -36,7 +31,7 @@
 		<input-vue
 			v-if="paymentType == 'Buy Goods...'"
 			label="Till Number"
-			id="1"
+			id="11"
 			:focus="focus"
 			v-model:value="tillNumber"
 			:value="tillNumber"
@@ -48,12 +43,9 @@
 		</input-vue>
 
 		<input-vue
-			v-if="
-				paymentType == 'Send Money' ||
-					paymentType == 'Pochi La Biashara'
-			"
+			v-if="paymentType == 'Send Money' || paymentType == 'Pochi la...'"
 			label="Phone Number"
-			id="1"
+			id="11"
 			:focus="focus"
 			v-model:value="phoneNumber"
 			:value="phoneNumber"
@@ -67,7 +59,7 @@
 		<input-vue
 			v-if="paymentType == 'Pay Bill'"
 			label="Business Number"
-			id="1"
+			id="11"
 			:focus="focus"
 			v-model:value="businessNumber"
 			:value="businessNumber"
@@ -81,7 +73,7 @@
 		<input-vue
 			v-if="paymentType == 'Pay Bill'"
 			label="Account Number"
-			id="2"
+			id="12"
 			:focus="focus"
 			v-model:value="accNumber"
 			:value="accNumber"
@@ -94,7 +86,7 @@
 
 		<input-vue
 			label="Payment Name"
-			id="3"
+			id="13"
 			:focus="focus"
 			v-model:value="paymentName"
 			:value="paymentName"
@@ -106,8 +98,8 @@
 		</input-vue>
 
 		<div class="button">
-			<button class="back btn" @click.prevent="prevPage">Back</button>
-			<button class="continue btn" @click.prevent="nextPage">
+			<button class="back btn pair" @click.prevent="prevPage">Back</button>
+			<button class="continue btn pair" @click.prevent="nextPage">
 				Continue
 			</button>
 		</div>
@@ -115,7 +107,7 @@
 </template>
 
 <script>
-import InputVue from "./Input.vue";
+import InputVue from "./utils/Input.vue";
 export default {
 	name: "InfoPage",
 
@@ -125,13 +117,8 @@ export default {
 
 	data() {
 		return {
-			paymentOptions: [
-				"Pay Bill",
-				"Buy Goods...",
-				"Pochi La Biashara",
-				"Send Money",
-			],
-			paymentType: "",
+			paymentOptions: ["Pay Bill", "Buy Goods...", "Pochi la...", "Send Money"],
+			paymentType: "Choose Payment Type",
 			tillNumber: "",
 			phoneNumber: "",
 			businessNumber: "",
@@ -142,22 +129,44 @@ export default {
 		};
 	},
 
+	computed: {
+		paymentOption() {
+			if (this.tillNumber) return { tillNumber: this.tillNumber };
+			else if (this.businessNumber) {
+				return {
+					businessNumber: this.businessNumber,
+					accNumber: this.accNumber,
+				};
+			} else return { phoneNumber: this.phoneNumber };
+		},
+	},
+
 	methods: {
 		changeFocus(id) {
 			this.focus = id;
 		},
 
 		nextPage() {
-			const paymentInfo = {
-				paymentType: this.paymentType,
-				tillNumber: this.tillNumber,
-				phoneNumber: this.phoneNumber,
-				businessNumber: this.businessNumber,
-				accNumber: this.accNumber,
-				paymentName: this.paymentName,
-			};
-			this.$emit("continue", { next: true, data: paymentInfo });
+			if (this.validate() !== "") {
+				this.$toast.error(this.validate());
+			} else {
+				const data = {
+					payment: {
+						paymentType: this.paymentType,
+						paymentName: this.paymentName,
+						...this.paymentOption,
+					}
+				};
+				this.$emit("continue", { next: true, data: data });
+			}
 		},
+
+		validate() {
+			if (this.paymentType == "" || this.paymentName == "")
+				return "Enter all info please!";
+			return "";
+		},
+
 		prevPage() {
 			this.$emit("continue", { next: false });
 		},
@@ -171,6 +180,21 @@ export default {
 </script>
 
 <style scoped>
+h3 {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.title {
+	border-bottom: 2px solid var(--accent);
+}
+
+.num {
+	background: var(--accent);
+	padding: 0.5rem 1rem;
+	border-radius: 50%;
+}
 .input-div.focus .icon {
 	color: var(--accent);
 }
@@ -201,11 +225,11 @@ export default {
 .btn {
 	flex-grow: 1;
 	cursor: pointer;
-	color: var(--bg);
+	color: var(--main);
+	background: var(--accent);
 	height: 2.8rem;
 	font-weight: 600;
-	background: var(--main);
-	border-radius: 0.2rem;
+	border-radius: 0.3rem;
 	margin: 0.7rem 0;
 	box-shadow: var(--shadow);
 }

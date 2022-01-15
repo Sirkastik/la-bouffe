@@ -1,6 +1,5 @@
 <template>
 	<div class="page one">
-		<h3>Restaurant Info:</h3>
 		<input-vue
 			label="Name"
 			id="0"
@@ -39,7 +38,7 @@
 				<div class="icon"><i class="fas fa-map-marker-alt"></i></div>
 			</template>
 			<template v-slot:dropValue>
-				<span class="value">
+				<span @click="showSelect = !showSelect" class="value">
 					{{ location }}
 				</span>
 			</template>
@@ -56,7 +55,7 @@
 		</div>
 
 		<div class="button">
-			<button class="continue btn long" @click.prevent="nextPage">
+			<button class="continue btn pair" @click.prevent="nextPage">
 				Continue
 			</button>
 		</div>
@@ -64,7 +63,7 @@
 </template>
 
 <script>
-import InputVue from "./Input.vue";
+import InputVue from "./utils/Input.vue";
 export default {
 	name: "InfoPage",
 
@@ -77,7 +76,7 @@ export default {
 			locations: ["Stage", "Chebarus", "Kesses"],
 			restaurantName: "",
 			contact: "",
-			location: "",
+			location: "Choose Location",
 			showSelect: false,
 			focus: undefined,
 		};
@@ -88,13 +87,32 @@ export default {
 			this.focus = id;
 		},
 
-		nextPage() {
-			const info = {
-				restaurantName: this.restaurantName,
-				contact: this.contact,
-				location: this.location,
-			};
-			this.$emit("continue", { next: true, data: info });
+		async nextPage() {
+			if (this.validate() !== "") {
+				this.$toast.error(this.validate());
+			} else {
+				const res = await fetch("https://source.unsplash.com/random/1600x900/?food");
+				const url = res.url;
+				const data = {
+					info: {
+						restaurantName: this.restaurantName,
+						contact: this.contact,
+						location: this.location,
+						photoUrl: url
+					},
+				};
+				this.$emit("continue", { next: true, data: data });
+			}
+		},
+
+		validate() {
+			if (
+				this.restaurantName == "" ||
+				this.contact == "" ||
+				this.location == ""
+			)
+				return "Enter all info please!";
+			return "";
 		},
 
 		selectLocation(location) {
@@ -106,6 +124,21 @@ export default {
 </script>
 
 <style scoped>
+h3 {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.title {
+	border-bottom: 2px solid var(--accent);
+}
+
+.num {
+	background: var(--accent);
+	padding: 0.5rem 1rem;
+	border-radius: 50%;
+}
 .input-div.focus .icon {
 	color: var(--accent);
 }
@@ -131,16 +164,17 @@ export default {
 	justify-content: center;
 	gap: 1rem;
 	flex-wrap: wrap;
+	margin-bottom: 1rem;
 }
 
 .btn {
 	flex-grow: 1;
 	cursor: pointer;
-	color: var(--bg);
+	color: var(--main);
+	background: var(--accent);
 	height: 2.8rem;
 	font-weight: 600;
-	background: var(--main);
-	border-radius: 0.2rem;
+	border-radius: 0.3rem;
 	margin: 0.7rem 0;
 	box-shadow: var(--shadow);
 }

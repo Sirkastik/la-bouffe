@@ -1,0 +1,155 @@
+<template>
+	<app-header />
+	<main>
+		<h3 class="doc">
+			{{ doc }}
+		</h3>
+		<div class="list">
+			<div v-for="item in items" v-bind:key="item.id" class="list-item">
+				<!-- <span class="icon"><i class="fas fa-utensils"></i></span> -->
+				<span class="item-name">{{ item.name }}</span>
+				<span class="item-price">@{{ item.price }}</span>
+				<span class="item-res">{{ item.restaurant }}</span>
+				<span class="atc" @click="addToCart(item)"
+					><i class="fas fa-cart-plus"></i
+				></span>
+			</div>
+		</div>
+	</main>
+	<bottom-nav />
+</template>
+
+<script>
+import AppHeader from "@/components/AppHeader.vue";
+import BottomNav from "@/components/AppNav.vue";
+import { db, collection, getDocs } from "../includes/firebase";
+
+export default {
+	components: { AppHeader, BottomNav },
+	data() {
+		return {
+			items: [],
+			cart: null,
+		};
+	},
+
+	async created() {
+		this.cart = JSON.parse(localStorage.getItem("foodCart"));
+		const docSnap = await getDocs(collection(db, this.doc));
+		docSnap.forEach(this.getItems);
+	},
+
+	computed: {
+		doc() {
+			return this.$route.params.doc;
+		},
+	},
+
+	methods: {
+		getItems(document) {
+			const item = {
+				...document.data(),
+				id: document.id,
+			};
+			this.items.unshift(item);
+		},
+
+		addToCart(item) {
+			const cart = this.cart ? this.addItem(item) : [item];
+			localStorage.setItem("foodCart", JSON.stringify(cart));
+		},
+
+		addItem(item) {
+			let cart = this.cart;
+			if (this.inCart(item)) return cart;
+			cart.push(item);
+			return cart;
+		},
+
+		inCart(newItem) {
+			return this.cart && this.cart.some((item) => item.id === newItem.id);
+		},
+	},
+};
+</script>
+
+<style scoped>
+main {
+	height: calc(100vh - 10rem);
+	margin-top: 5rem;
+	padding: 0 1.5rem;
+	overflow-y: scroll;
+}
+
+.doc {
+	text-align: center;
+	font-size: 1.1em;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	font-weight: bold;
+
+	padding: 0.5rem 0;
+}
+
+.list {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	padding: 1rem 0;
+	width: 100%;
+	animation: slide 1s ease-in-out both;
+}
+
+@keyframes slide {
+	from {
+		transform: translateX(70vh);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+.list-item {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	box-shadow: var(--shadow);
+	height: 3rem;
+	border-radius: 0.25rem;
+
+	background: var(--color);
+	color: var(--main);
+	font-size: 0.8em;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	font-weight: bold;
+}
+
+.item-name {
+	margin-right: auto;
+	padding-left: 1rem;
+}
+
+.item-price {
+	flex-shrink: 1;
+	padding-right: 1rem;
+}
+
+.item-res {
+	width: 4rem;
+	font-size: 0.8em;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.atc {
+	height: 3rem;
+	background: var(--color);
+	color: var(--main);
+	padding: 0 0.5rem;
+	display: grid;
+	place-content: center;
+	border-radius: 0 0.25rem 0.25rem 0;
+}
+</style>

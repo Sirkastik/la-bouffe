@@ -1,19 +1,31 @@
 import { createStore } from "vuex";
 import {
-  auth, db, doc, getDoc, setDoc, provider, signInWithPopup, updateProfile,
+  auth, db, doc, setDoc, provider, signInWithPopup, updateProfile,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut
 } from "../includes/firebase";
 
 export default createStore({
   state: {
-    accountType: null
+    hasOrders: false,
+    user: null,
   },
   mutations: {
-    setAccountType(state, accountType) {
-      state.accountType = accountType
+    SET_ORDERS(state, payload) {
+      state.hasOrders = payload
+    },
+    SET_USER(state, payload) {
+      state.user = payload
     }
   },
   actions: {
+    setHasOrders({ commit }, payload) {
+      commit('SET_ORDERS', payload)
+    },
+
+    setUser({ commit }, payload) {
+      commit('SET_USER', payload)
+    },
+    
     async login({ }, payload) {
       await signInWithEmailAndPassword(auth, payload.email, payload.password);
     },
@@ -26,21 +38,12 @@ export default createStore({
       await createUserWithEmailAndPassword(auth, payload.email, payload.password);
     },
 
-    async addUserBuyer({ commit }) {
-      await setDoc(doc(db, 'users', auth.currentUser.uid), {
-        email: auth.currentUser.email,
-        accountType: "Buyer"
-      })
-      commit('setAccountType', "Buyer");
-    },
-
-    async addRestaurant({ commit }, payload) {
+    async addRestaurant({ }, payload) {
       await setDoc(doc(db, 'users', auth.currentUser.uid), {
         username: payload.info.restaurantName,
         email: auth.currentUser.email,
         accountType: "Restaurant"
       })
-      commit('setAccountType', "Restaurant");
       await setDoc(doc(db, 'restaurants', auth.currentUser.uid), {
         info: payload.info,
         payment: payload.payment

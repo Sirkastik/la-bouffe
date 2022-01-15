@@ -1,4 +1,4 @@
-# e-foodie
+# la-bouffé
 
 ## Project setup
 ```

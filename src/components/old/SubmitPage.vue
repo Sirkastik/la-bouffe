@@ -1,9 +1,8 @@
 <template>
 	<div class="page three">
-		<h3>Credentials:</h3>
 		<input-vue
 			label="Email"
-			id="0"
+			id="20"
 			type="email"
 			:focus="focus"
 			v-model:value="email"
@@ -17,7 +16,7 @@
 
 		<input-vue
 			label="Password"
-			id="1"
+			id="21"
 			type="password"
 			:focus="focus"
 			v-model:value="password"
@@ -31,7 +30,7 @@
 
 		<input-vue
 			label="Confirm Password"
-			id="2"
+			id="22"
 			type="password"
 			:focus="focus"
 			v-model:value="confirmPassword"
@@ -44,14 +43,14 @@
 		</input-vue>
 
 		<div class="button">
-			<button class="back btn" @click.prevent="prevPage">Back</button>
-			<button class="submit btn" @click.prevent="submit">Submit</button>
+			<button class="back btn pair" @click.prevent="prevPage">Back</button>
+			<button class="submit btn pair" @click.prevent="submit">Submit</button>
 		</div>
 	</div>
 </template>
 
 <script>
-import InputVue from "./Input.vue";
+import InputVue from "./utils/Input.vue";
 export default {
 	name: "SubmitPage",
 
@@ -78,19 +77,63 @@ export default {
 		},
 
 		submit() {
-			const credentials = {
-				email: this.email,
-				password: this.password,
-			};
-			this.$emit("submit", credentials);
+			if (this.validate() !== "") {
+				this.$toast.error(this.validate()); 
+			} else {
+				const credentials = {
+					email: this.email,
+					password: this.password,
+				};
+				this.$emit("submit", credentials);
+			}
+		},
+
+		validate() {
+			if (this.email == "" || this.password == "")
+				return "Enter all credentials please!";
+			if (this.password.length < 6)
+				return "Password must be at least 6 characters";
+			if(this.password !== this.confirmPassword)
+				return "Password do not match"
+			return "";
 		},
 	},
 };
 </script>
 
 <style scoped>
+h3 {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.title {
+	border-bottom: 2px solid var(--accent);
+}
+
+.num {
+	background: var(--accent);
+	padding: 0.5rem 1rem;
+	border-radius: 50%;
+}
 .input-div.focus .icon {
 	color: var(--accent);
+}
+
+.select {
+	margin-top: -2.3rem;
+	margin-bottom: 1rem;
+	padding: 0.5rem;
+	border: 1px solid var(--accent);
+	border-radius: 0.4rem;
+
+	column-count: 3;
+	column-rule: 1px double var(--accent);
+}
+
+.value {
+	width: 100%;
 }
 
 .button {
@@ -104,11 +147,11 @@ export default {
 .btn {
 	flex-grow: 1;
 	cursor: pointer;
-	color: var(--bg);
+	color: var(--main);
+	background: var(--accent);
 	height: 2.8rem;
 	font-weight: 600;
-	background: var(--main);
-	border-radius: 0.2rem;
+	border-radius: 0.3rem; 
 	margin: 0.7rem 0;
 	box-shadow: var(--shadow);
 }

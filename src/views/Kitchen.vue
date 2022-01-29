@@ -71,21 +71,17 @@
 				<h3>Restaurant Info</h3>
 				<div class="field">
 					<span>Name:</span>
-					<span contenteditable="true" @blur="edit">
+					<span>
 						{{ this.resDetails.info.restaurantName }}
 					</span>
 				</div>
 				<div class="field">
 					<span>Contact:</span>
-					<span contenteditable="true" @blur="edit">{{
-						this.resDetails.info.contact
-					}}</span>
+					<span>{{ this.resDetails.info.contact }}</span>
 				</div>
 				<div class="field">
 					<span>Location:</span>
-					<span contenteditable="true" @blur="edit">{{
-						this.resDetails.info.location
-					}}</span>
+					<span>{{ this.resDetails.info.location }}</span>
 				</div>
 			</div>
 
@@ -93,46 +89,36 @@
 				<h3>Payment Details</h3>
 				<div class="field">
 					<span>Payment Name:</span>
-					<span contenteditable="true" @blur="edit">{{
-						this.resDetails.payment.paymentName
-					}}</span>
+					<span>{{ this.resDetails.payment.paymentName }}</span>
 				</div>
 				<div class="field">
 					<span>Payment Type:</span>
-					<span contenteditable="true" @blur="edit">{{
-						this.resDetails.payment.paymentType
-					}}</span>
+					<span>{{ this.resDetails.payment.paymentType }}</span>
 				</div>
 				<div class="field" v-if="type == 'Buy Goods...'">
 					<span>Till Number:</span>
-					<span contenteditable="true" @blur="edit">{{
-						this.resDetails.payment.tillNumber
-					}}</span>
+					<span>{{ this.resDetails.payment.tillNumber }}</span>
 				</div>
 				<div v-else-if="type == 'Pay Bill'">
 					<div class="field">
 						<span>Business Number:</span>
 
-						<span contenteditable="true" @blur="edit">{{
-							this.resDetails.payment.businessNumber
-						}}</span>
+						<span>{{ this.resDetails.payment.businessNumber }}</span>
 					</div>
 					<div class="field">
 						<span>Account Number:</span>
-						<span contenteditable="true" @blur="edit">{{
-							this.resDetails.payment.accNumber
-						}}</span>
+						<span>{{ this.resDetails.payment.accNumber }}</span>
 					</div>
 				</div>
 				<div class="field" v-else>
 					<span>Phone Number:</span>
-					<span contenteditable="true" @blur="edit">{{
-						this.resDetails.payment.phoneNumber
-					}}</span>
+					<span>{{ this.resDetails.payment.phoneNumber }}</span>
 				</div>
-				<h3 @click="handleSignout">Sign out</h3>
 			</div>
 		</section>
+		<button v-if="showDetails" @click="handleSignout">
+			Sign out <i class="fas fa-sign-out-alt"></i>
+		</button>
 	</div>
 	<add-modal
 		@close="this.showModal = false"
@@ -158,7 +144,7 @@ import {
 	deleteDoc,
 	query,
 	where,
-} from "@/includes/firebase";
+} from "@/services/firebase";
 import AddModal from "@/components/modals/AddModal.vue";
 import AppBottom from "@/components/AppBottom.vue";
 export default {
@@ -372,24 +358,45 @@ section {
 .payment {
 	display: flex;
 	flex-direction: column;
-	gap: 0.7rem;
+	gap: 1rem;
 
 	margin: 1rem 0;
 }
 
+.info h3,
+.payment h3 {
+	text-transform: uppercase;
+	font-size: 0.9em;
+	letter-spacing: 1px;
+	font-weight: bold;
+}
+
 .field {
-	/* border: 1px solid var(--main); */
 	display: flex;
 	justify-content: space-between;
-	gap: 0.5rem;
-	background: var(--main);
-	color: var(--color);
-	padding: 0.5rem 0.8rem;
-	border-radius: 0.4rem;
+	align-items: center;
+	gap: 1rem;
+	color: var(--main);
+	padding: 0.75rem 0.8rem;
+	border-radius: 0.25rem;
+	box-shadow: var(--shadow);
+	text-transform: capitalize;
+	letter-spacing: .7px;
+	font-size: .8em;
 }
 
 .field span:nth-child(2) {
+	text-transform: uppercase;
+	font-weight: bold;
 	flex: 1;
+	text-align: left;
+}
+
+button {
+	text-transform: uppercase;
+	font-size: 0.95em;
+	font-weight: bold;
+	margin-top: 1rem;
 }
 
 /* .field > span {

@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import { db, collection, getDocs } from "../includes/firebase";
+import { db, collection, getDocs } from "@/services/firebase";
 import PickedItem from "./ItemPicked.vue";
 export default {
 	components: { PickedItem },

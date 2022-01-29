@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Home from "/src/views/Home.vue";
-// import { getCurrentUser } from "../includes/firebase";
+import { getCurrentUser } from "@/services/firebase";
 
 const routes = [
   {
@@ -52,19 +52,19 @@ const router = createRouter({
   routes,
 });
 
-// router.beforeEach(async (to, from, next) => {
-//   if (!to.meta.requiresAuth) {
-//     next()
-//   } else {
-//     const user = await getCurrentUser()
-//     if (to.path === '/account') {
-//       if (user) next('/restaurant')
-//       else next()
-//     } else {
-//       if (!user) next('/account')
-//       else next() 
-//     }
-//   }
-// });
+router.beforeEach(async (to, from, next) => {
+  if (!to.meta.requiresAuth) {
+    next()
+  } else {
+    const user = await getCurrentUser()
+    if (to.path === '/account') {
+      if (user) next('/restaurant')
+      else next()
+    } else {
+      if (!user) next('/account')
+      else next() 
+    }
+  }
+});
 
 export default router;

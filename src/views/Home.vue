@@ -28,9 +28,6 @@ export default {
 
 <style scoped>
 main {
-	height: calc(100vh - 10rem);
-	margin-top: 5rem;
-	padding: 0 1.5rem;
-	overflow-y: scroll;
+	padding: 1.5rem;
 }
 </style>

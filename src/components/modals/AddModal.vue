@@ -129,7 +129,7 @@
 </template>
 
 <script>
-import { auth } from "@/includes/firebase";
+import { auth } from "@/services/firebase";
 export default {
 	data() {
 		return {

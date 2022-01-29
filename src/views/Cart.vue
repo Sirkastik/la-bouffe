@@ -66,6 +66,10 @@ export default {
 	created() {
 		const obj = JSON.parse(localStorage.getItem("foodCart"));
 		this.cart = obj ? obj : [];
+		this.$toast.default("The default cart...");
+		this.$toast.info("Info: cart is not empty...");
+		this.$toast.success("Cart opened successfully...");
+		this.$toast.error("Cannot find item...");
 	},
 
 	computed: {
@@ -119,7 +123,7 @@ export default {
 	justify-content: space-between;
 	align-items: center;
 	height: 2rem;
-		text-transform: uppercase;
+	text-transform: uppercase;
 	letter-spacing: 1px;
 }
 
@@ -294,8 +298,8 @@ h2 {
 	text-transform: uppercase;
 	font-weight: bold;
 	text-align: center;
-	padding: .75rem 0;
-	border: 1px solid var(--lighter); 
+	padding: 0.75rem 0;
+	border: 1px solid var(--lighter);
 	color: var(--main);
 	border-radius: 0.5rem;
 }

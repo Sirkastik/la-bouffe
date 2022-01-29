@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import { db, collection, getDocs } from "../includes/firebase";
+import { db, collection, getDocs } from "@/services/firebase";
 import RestaurantItem from "./ItemRes.vue";
 export default {
 	components: { RestaurantItem },

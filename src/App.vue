@@ -2,22 +2,6 @@
 	<router-view />
 </template>
 
-<script>
-export default {
-	created() {
-		this.checkCookie();
-	},
-	methods: {
-		checkCookie() {
-			let decodedCookie = decodeURIComponent(document.cookie);
-			let cookieArr = decodedCookie.split("; ");
-			let orders = cookieArr.filter((cookie) => cookie.startsWith("order"));
-			if (orders != "") this.$store.dispatch("setHasOrders", true);
-		},
-	},
-};
-</script>
-
 <style>
 @import url("./assets/css/fontawesome.min.css");
 @import url("./assets/css/solid.min.css");

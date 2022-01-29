@@ -13,12 +13,14 @@
 </template>
 
 <script>
-export default {
-};
+export default {};
 </script>
 
 <style scoped>
 nav {
+	background: var(--grad);
+	background-size: 500%;
+	background-position: center;
 	height: 3.5rem;
 	position: fixed;
 	z-index: 2;

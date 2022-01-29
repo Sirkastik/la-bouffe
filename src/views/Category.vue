@@ -22,7 +22,7 @@
 <script>
 import AppHeader from "@/components/AppHeader.vue";
 import BottomNav from "@/components/AppNav.vue";
-import { db, collection, getDocs } from "../includes/firebase";
+import { db, collection, getDocs } from "@/services/firebase";
 
 export default {
 	components: { AppHeader, BottomNav },
@@ -75,10 +75,7 @@ export default {
 
 <style scoped>
 main {
-	height: calc(100vh - 10rem);
-	margin-top: 5rem;
-	padding: 0 1.5rem;
-	overflow-y: scroll;
+	padding: 1.5rem;
 }
 
 .doc {

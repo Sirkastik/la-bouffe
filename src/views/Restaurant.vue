@@ -86,7 +86,7 @@ import {
 	getDocs,
 	query,
 	where,
-} from "@/includes/firebase";
+} from "@/services/firebase";
 
 export default {
 	data() {

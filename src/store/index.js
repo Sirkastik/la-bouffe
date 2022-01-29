@@ -2,7 +2,7 @@ import { createStore } from "vuex";
 import {
   auth, db, doc, setDoc, provider, signInWithPopup, updateProfile,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut
-} from "../includes/firebase";
+} from "@/services/firebase";
 
 export default createStore({
   state: {

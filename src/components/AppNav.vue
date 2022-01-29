@@ -1,5 +1,5 @@
 <template>
-	<nav>
+	<nav v-if="show()">
 		<span @click="$router.push('/')">
 			<i class="fas fa-home"></i>
 		</span>
@@ -12,8 +12,21 @@
 	</nav>
 </template>
 
+<script>
+export default {
+	methods: {
+		show() {
+			return window.innerWidth < 600
+		}
+	}
+}
+</script>
+
 <style scoped>
 nav {
+	background: var(--grad);
+	background-size: 250%;
+	background-position: center;
 	height: 3.5rem;
 	position: fixed;
 	z-index: 2;

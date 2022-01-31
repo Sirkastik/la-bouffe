@@ -3,10 +3,10 @@
 		<div class="top">
 			<h2>Welcome to {{ displayName }}</h2>
 		</div>
-		<h1 v-if="!showDetails">
+		<h1 v-if="!showDetailsPage">
 			<span>The Menu</span><span><i class="fas fa-book-open"></i></span>
 		</h1>
-		<section v-if="!showDetails">
+		<section v-if="!showDetailsPage">
 			<div class="menu" v-if="menu.length">
 				<div class="category" v-if="breakfast.length">
 					<h1>Breakfast</h1>
@@ -59,29 +59,29 @@
 					</div>
 				</div>
 			</div>
-			<div class="no-items" v-else @click="showModal = true">
+			<div class="no-items" v-else @click="showAddModal = true">
 				<span>
 					You have no items in your menu. Click here to add food items
 				</span>
 				<span><i class="fas fa-plus-circle"></i></span>
 			</div>
 		</section>
-		<section v-if="showDetails">
+		<section v-if="showDetailsPage">
 			<div class="info">
 				<h3>Restaurant Info</h3>
 				<div class="field">
 					<span>Name:</span>
 					<span>
-						{{ this.resDetails.info.restaurantName }}
+						{{ this.restaurantDetails.info.restaurantName }}
 					</span>
 				</div>
 				<div class="field">
 					<span>Contact:</span>
-					<span>{{ this.resDetails.info.contact }}</span>
+					<span>{{ this.restaurantDetails.info.contact }}</span>
 				</div>
 				<div class="field">
 					<span>Location:</span>
-					<span>{{ this.resDetails.info.location }}</span>
+					<span>{{ this.restaurantDetails.info.location }}</span>
 				</div>
 			</div>
 
@@ -89,50 +89,47 @@
 				<h3>Payment Details</h3>
 				<div class="field">
 					<span>Payment Name:</span>
-					<span>{{ this.resDetails.payment.paymentName }}</span>
+					<span>{{ this.restaurantDetails.payment.paymentName }}</span>
 				</div>
 				<div class="field">
 					<span>Payment Type:</span>
-					<span>{{ this.resDetails.payment.paymentType }}</span>
+					<span>{{ this.restaurantDetails.payment.paymentType }}</span>
 				</div>
-				<div class="field" v-if="type == 'Buy Goods...'">
-					<span>Till Number:</span>
-					<span>{{ this.resDetails.payment.tillNumber }}</span>
+				<div class="field" v-if="type === 'Pay Bill'">
+					<span>Business Number:</span>
+					<span>{{ this.restaurantDetails.payment.businessNumber }}</span>
 				</div>
-				<div v-else-if="type == 'Pay Bill'">
-					<div class="field">
-						<span>Business Number:</span>
-
-						<span>{{ this.resDetails.payment.businessNumber }}</span>
-					</div>
-					<div class="field">
-						<span>Account Number:</span>
-						<span>{{ this.resDetails.payment.accNumber }}</span>
-					</div>
-				</div>
-				<div class="field" v-else>
-					<span>Phone Number:</span>
-					<span>{{ this.resDetails.payment.phoneNumber }}</span>
+				<div class="field">
+					<span>{{ payLabel }}:</span>
+					<span>{{ this.restaurantDetails.payment.accountNumber }}</span>
 				</div>
 			</div>
 		</section>
-		<button v-if="showDetails" @click="handleSignout">
+		<button v-if="showDetailsPage" @click="handleSignout">
 			Sign out <i class="fas fa-sign-out-alt"></i>
 		</button>
 	</div>
 	<add-modal
-		@close="this.showModal = false"
+		@close="this.showAddModal = false"
 		@add="handleSubmit"
-		v-if="showModal"
+		v-if="showAddModal"
 	/>
+	<orders-modal
+		@close="this.showOrdersModal = false"
+		v-if="showOrdersModal"
+		:orders="orders"
+	/>
+
 	<app-bottom
-		@home="showDetails = false"
-		@open="showModal = true"
+		@home="showDetailsPage = false"
+		@open="showAddModal = true"
 		@user="getDetails"
+		@orders="showOrdersModal = true"
 	/>
 </template>
 
 <script>
+import { mapState } from "vuex";
 import {
 	auth,
 	db,
@@ -144,31 +141,44 @@ import {
 	deleteDoc,
 	query,
 	where,
+	onSnapshot,
 } from "@/services/firebase";
 import AddModal from "@/components/modals/AddModal.vue";
+import OrdersModal from "@/components/modals/OrdersModal.vue";
 import AppBottom from "@/components/AppBottom.vue";
 export default {
 	name: "RestaurantPage",
 
-	components: { AddModal, AppBottom },
+	components: { AddModal, OrdersModal, AppBottom },
 	data() {
 		return {
-			showModal: false,
 			menu: [],
-			resDetails: {},
-			showDetails: false,
-			editable: false,
+			restaurantDetails: {},
+			showDetailsPage: false,
+			showAddModal: false,
+			showOrdersModal: false,
 		};
 	},
 
 	computed: {
+		...mapState(["orders"]),
 		displayName() {
 			return auth.currentUser.displayName;
 		},
 		type() {
-			return this.resDetails.payment.paymentType;
+			return this.restaurantDetails.payment.paymentType;
 		},
-
+		payLabels() {
+			return {
+				"Send Money": "Phone Number",
+				"Buy Goods and Services": "Till Number",
+				"Pochi la Biashara": "Phone Number",
+				"Pay Bill": "Account Number",
+			};
+		},
+		payLabel() {
+			return this.payLabels[this.type];
+		},
 		uid() {
 			return auth.currentUser.uid;
 		},
@@ -191,6 +201,25 @@ export default {
 
 	async created() {
 		await this.getMenu();
+
+		const q = query(
+			collection(db, "orders"),
+			where("restaurant", "==", this.displayName)
+		);
+		const unsubscribe = onSnapshot(q, (querySnapshot) => {
+			let orders = [];
+			querySnapshot.forEach((doc) => {
+				const order = {
+					id: doc.id,
+					...doc.data(),
+				};
+				orders.push(order);
+			});
+			if (this.orders.length && orders.length === this.orders.length + 1) {
+				this.$toast.default("New order available...");
+			}
+			this.$store.dispatch("setOrders", orders);
+		});
 	},
 
 	methods: {
@@ -226,8 +255,8 @@ export default {
 				const newEntryRef = await addDoc(collection(db, data.category), data);
 				const newEntrySnapshot = await getDoc(newEntryRef);
 				this.getItems(newEntrySnapshot);
-				this.$toast.success("Item Added...");
-				this.showModal = false;
+				this.$toast.default("Item Added...");
+				this.showAddModal = false;
 			} catch (error) {
 				this.$toast.error("Couldn't add item...");
 				console.log(error);
@@ -243,7 +272,7 @@ export default {
 			try {
 				await deleteDoc(doc(db, itemToDel.category, itemToDel.id));
 				this.menu = this.menu.filter((item) => item !== itemToDel);
-				this.$toast.success("Item deleted...");
+				this.$toast.default("Item deleted...");
 			} catch (error) {
 				this.$toast.error("Error deleting item...");
 				console.log(error);
@@ -252,9 +281,8 @@ export default {
 
 		async getDetails() {
 			const resSnap = await getDoc(doc(db, "restaurants", this.uid));
-			this.resDetails = resSnap.data();
-			console.log(this.resDetails);
-			this.showDetails = true;
+			this.restaurantDetails = resSnap.data();
+			this.showDetailsPage = true;
 		},
 	},
 };
@@ -381,8 +409,8 @@ section {
 	border-radius: 0.25rem;
 	box-shadow: var(--shadow);
 	text-transform: capitalize;
-	letter-spacing: .7px;
-	font-size: .8em;
+	letter-spacing: 0.7px;
+	font-size: 0.8em;
 }
 
 .field span:nth-child(2) {

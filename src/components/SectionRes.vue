@@ -7,7 +7,7 @@
 			<restaurant-item
 				v-for="restaurant in restaurants"
 				v-bind:key="restaurant.id"
-				@click="navigate(restaurant.id)"
+				@click="$router.push(`/buyer/restaurant/${restaurant.id}`)"
 				:restaurant="restaurant"
 			/>
 		</div>
@@ -15,35 +15,27 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
 import { db, collection, getDocs } from "@/services/firebase";
 import RestaurantItem from "./ItemRes.vue";
 export default {
 	components: { RestaurantItem },
-	data() {
-		return {
-			restaurants: [],
-			images: [],
-		};
+
+	computed: {
+		...mapState(["restaurants"]),
 	},
 
 	async created() {
-		const resSnap = await getDocs(collection(db, "restaurants"));
-		resSnap.forEach(this.getItems);
-	},
-
-	methods: {
-		async getItems(document) {
-			const data = document.data();
-			const info = {
-				...data.info,
+		const restaurantSnapShot = await getDocs(collection(db, "restaurants"));
+		let restaurants = [];
+		restaurantSnapShot.forEach((document) => {
+			const data = {
 				id: document.id,
+				...document.data().info,
 			};
-			this.restaurants.unshift(info);
-		},
-
-		navigate(id) {
-			this.$router.push(`/buyer/restaurant/${id}`);
-		},
+			restaurants.unshift(data);
+		});
+		this.$store.dispatch("updateRestaurants", restaurants);
 	},
 };
 </script>

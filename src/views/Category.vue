@@ -3,16 +3,22 @@
 	<main>
 		<h3 class="doc">
 			{{ doc }}
+			<span class="icon" v-html="icon"></span>
 		</h3>
 		<div class="list">
 			<div v-for="item in items" v-bind:key="item.id" class="list-item">
-				<!-- <span class="icon"><i class="fas fa-utensils"></i></span> -->
 				<span class="item-name">{{ item.name }}</span>
 				<span class="item-price">@{{ item.price }}</span>
 				<span class="item-res">{{ item.restaurant }}</span>
-				<span class="atc" @click="addToCart(item)"
-					><i class="fas fa-cart-plus"></i
-				></span>
+				<span
+					class="atc"
+					@click="
+						$store.dispatch('addToCart', item);
+						this.$toast.default('Added to cart...');
+					"
+				>
+					<i class="fas fa-cart-plus"></i>
+				</span>
 			</div>
 		</div>
 	</main>
@@ -29,12 +35,10 @@ export default {
 	data() {
 		return {
 			items: [],
-			cart: null,
 		};
 	},
 
 	async created() {
-		this.cart = JSON.parse(localStorage.getItem("foodCart"));
 		const docSnap = await getDocs(collection(db, this.doc));
 		docSnap.forEach(this.getItems);
 	},
@@ -42,6 +46,20 @@ export default {
 	computed: {
 		doc() {
 			return this.$route.params.doc;
+		},
+
+		icon() {
+			let icon = this.icons[this.doc];
+			return `<i class="fas fa-${icon}"></i>`;
+		},
+		icons() {
+			return {
+				breakfast: "coffee",
+				dishes: "utensils",
+				drinks: "cocktail",
+				snacks: "hamburger",
+				desserts: "cookie",
+			};
 		},
 	},
 
@@ -52,22 +70,6 @@ export default {
 				id: document.id,
 			};
 			this.items.unshift(item);
-		},
-
-		addToCart(item) {
-			const cart = this.cart ? this.addItem(item) : [item];
-			localStorage.setItem("foodCart", JSON.stringify(cart));
-		},
-
-		addItem(item) {
-			let cart = this.cart;
-			if (this.inCart(item)) return cart;
-			cart.push(item);
-			return cart;
-		},
-
-		inCart(newItem) {
-			return this.cart && this.cart.some((item) => item.id === newItem.id);
 		},
 	},
 };

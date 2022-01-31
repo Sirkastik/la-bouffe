@@ -16,17 +16,14 @@
 export default {
 	methods: {
 		show() {
-			return window.innerWidth < 600
-		}
-	}
-}
+			return window.innerWidth < 600;
+		},
+	},
+};
 </script>
 
 <style scoped>
 nav {
-	background: var(--grad);
-	background-size: 250%;
-	background-position: center;
 	height: 3.5rem;
 	position: fixed;
 	z-index: 2;
@@ -37,5 +34,28 @@ nav {
 	padding: 1.25rem;
 	border-radius: 0.5rem;
 	box-shadow: var(--shadow);
+}
+
+nav::before {
+	border-radius: inherit;
+	content: "";
+	position: absolute;
+	z-index: -2;
+	inset: 0 -3rem -3rem -3rem;
+	background: linear-gradient(
+		0deg,
+		rgba(0, 0, 0, 0.4) 0%,
+		rgba(255, 255, 255, 0) 100%
+	);
+}
+nav::after {
+	border-radius: inherit;
+	content: "";
+	position: absolute;
+	z-index: -1;
+	inset: 0;
+	background: var(--grad);
+	background-size: 250%;
+	background-position: center;
 }
 </style>

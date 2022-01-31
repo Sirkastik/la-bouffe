@@ -1,5 +1,11 @@
 <template>
-	<div class="food">
+	<div
+		class="food"
+		@click="
+			$store.dispatch('addToCart', item);
+			$toast.default('Added to cart...');
+		"
+	>
 		<div class="card">
 			{{ item.category }} <span>@ {{ item.price }}</span>
 		</div>

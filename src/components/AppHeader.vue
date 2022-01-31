@@ -31,9 +31,6 @@ export default {
 <style scoped>
 header {
 	height: 3.5rem;
-	/* position: fixed; */
-	/* z-index: 10; */
-	/* inset: .5rem .75rem auto .75rem; */
 	display: flex;
 	justify-content: space-between;
 	align-items: center;

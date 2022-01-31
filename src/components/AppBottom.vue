@@ -6,6 +6,9 @@
 		<button class="btn pointer" @click="$emit('open')">
 			<i class="fas fa-plus-circle"></i>
 		</button>
+		<button class="btn pointer" @click="$emit('orders')">
+			<i class="fas fa-receipt"></i>
+		</button>
 		<button class="btn pointer" @click="$emit('user')">
 			<i class="fas fa-user-alt"></i>
 		</button>
@@ -41,5 +44,28 @@ nav {
 	to {
 		transform: translateY(0);
 	}
+}
+
+nav::before {
+	border-radius: inherit;
+	content: "";
+	position: absolute;
+	z-index: -2;
+	inset: 0 -3rem -3rem -3rem;
+	background: linear-gradient(
+		0deg,
+		rgba(0, 0, 0, 0.4) 0%,
+		rgba(255, 255, 255, 0) 100%
+	);
+}
+nav::after {
+	border-radius: inherit;
+	content: "";
+	position: absolute;
+	z-index: -1;
+	inset: 0;
+	background: var(--grad);
+	background-size: 250%;
+	background-position: center;
 }
 </style>

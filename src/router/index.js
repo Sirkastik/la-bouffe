@@ -26,11 +26,6 @@ const routes = [
     component: () => import(/* webpackChunkName: "Search" */ "../views/Search.vue"),
   },
   {
-    path: "/favourites",
-    name: "Fav",
-    component: () => import(/* webpackChunkName: "Fav" */ "../views/Fav.vue"),
-  },
-  {
     path: "/cart",
     name: "Cart",
     component: () => import(/* webpackChunkName: "Cart" */ "../views/Cart.vue"),

@@ -2,9 +2,9 @@
 	<div class="cart route-slide">
 		<div class="top">
 			<h2 class="title">
-				<span class="back" @click="$router.back()"
-					><i class="fas fa-chevron-left"></i
-				></span>
+				<span class="back" @click="$router.back()">
+					<i class="fas fa-chevron-left"></i>
+				</span>
 				Cart
 			</h2>
 			<span>
@@ -19,24 +19,27 @@
 					<div class="details">
 						<div class="name">{{ product.name }}</div>
 						<div class="res">{{ product.restaurant }}</div>
-						<div class="price">@ {{ formatPrice(product.price) }}</div>
+						<div class="price">@ {{ product.price }}</div>
 					</div>
 					<div class="quantity">
-						<i class="fas fa-minus"></i>
+						<span @click="$store.dispatch('minusQuantity', product.id)">
+							<i class="fas fa-minus"></i>
+						</span>
 						<span>{{ product.quantity }}</span>
-						<i class="fas fa-plus"></i>
+						<span @click="$store.dispatch('addQuantity', product.id)">
+							<i class="fas fa-plus"></i>
+						</span>
 					</div>
 					<div class="right">
-						<span class="delete" @click="deleteFromCart(product.id)">
+						<span
+							class="delete"
+							@click="$store.dispatch('deleteFromCart', product.id)"
+						>
 							<i class="fas fa-trash"></i>
 						</span>
 						<span class="totalLabel">Total:</span>
 						<span class="total">
-							{{
-								formatPrice(
-									parseInt(product.price) * parseInt(product.quantity)
-								)
-							}}
+							{{ parseInt(product.price) * parseInt(product.quantity) }}
 						</span>
 					</div>
 				</div>
@@ -45,34 +48,37 @@
 					<div class="summary-content">
 						<div class="grand-total">
 							<span class="left">Grand Total</span
-							><span class="right">Ksh. {{ formatPrice(subTotal) }}</span>
+							><span class="right">Ksh. {{ subTotal }}</span>
 						</div>
 					</div>
-					<button class="checkout">Checkout</button>
+					<button class="complete" @click="showModal = true">
+						Complete Order
+					</button>
 				</div>
 			</div>
 		</div>
 	</div>
+	<customer-info-modal
+		@close="showModal = false"
+		@checkout="handleCheckout"
+		v-if="showModal"
+	/>
 </template>
 
 <script>
+import { mapState } from "vuex";
+import CustomerInfoModal from "@/components/modals/CustomerInfo";
+import { db, addDoc, getDoc, collection } from "@/services/firebase";
 export default {
+	components: { CustomerInfoModal },
 	data() {
 		return {
-			cart: [],
+			showModal: false,
 		};
 	},
 
-	created() {
-		const obj = JSON.parse(localStorage.getItem("foodCart"));
-		this.cart = obj ? obj : [];
-		this.$toast.default("The default cart...");
-		this.$toast.info("Info: cart is not empty...");
-		this.$toast.success("Cart opened successfully...");
-		this.$toast.error("Cannot find item...");
-	},
-
 	computed: {
+		...mapState(["cart"]),
 		subTotal() {
 			let total = 0;
 			this.cart.forEach(
@@ -80,36 +86,45 @@ export default {
 			);
 			return total;
 		},
+		orders() {
+			let orders = [];
+			this.restaurants.forEach((restaurant) => {
+				const order = {
+					restaurant: restaurant,
+					orders: this.cart.filter((item) => item.restaurant === restaurant),
+				};
+				orders.push(order);
+			});
+			return orders;
+		},
+		restaurants() {
+			let restaurants = [];
+			this.cart.forEach((item) => {
+				if (!restaurants.includes(item.restaurant))
+					restaurants.push(item.restaurant);
+			});
+			return restaurants;
+		},
 	},
 
 	methods: {
-		formatPrice(value) {
-			return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-		},
-		add(product) {
-			const quantity = product.quantity + 1;
-			this.updateCart(quantity, product.id);
-		},
-
-		minus(product) {
-			const quantity = product.quantity - 1;
-			if (quantity === 0) this.deleteFromCart(product.id);
-			else this.updateCart(quantity, product.id);
-		},
-
-		updateCart(quantity, id) {
-			const cart = this.cart.map((item) => {
-				if (item.id === id) return { ...item, quantity: quantity };
-				return item;
-			});
-			localStorage.setItem("foodCart", JSON.stringify(cart));
-			this.cart = JSON.parse(localStorage.getItem("foodCart"));
-		},
-		deleteFromCart(id) {
-			const cart = this.cart.filter((item) => item.id !== id);
-			console.log(cart);
-			localStorage.setItem("foodCart", JSON.stringify(cart));
-			this.cart = JSON.parse(localStorage.getItem("foodCart"));
+		async handleCheckout(customerInfo) {
+			this.showModal = false;
+			try {
+				this.orders.forEach(async (order) => {
+					const newOrderRef = await addDoc(collection(db, "orders"), {
+						customer: customerInfo,
+						restaurant: order.restaurant,
+						orders: order.orders,
+						accepted: "pending",
+					});
+					const newOrderSnapshot = await getDoc(newOrderRef);
+					console.log(newOrderSnapShot.data());
+				});
+			} catch (error) {
+				this.$toast.error("Error...");
+				console.log(error);
+			}
 		},
 	},
 };
@@ -151,6 +166,7 @@ h2 {
 	height: calc(100vh - 3rem);
 	overflow-y: scroll;
 }
+
 .empty {
 	width: 100%;
 	height: 100%;
@@ -167,12 +183,11 @@ h2 {
 }
 
 .product {
-	width: 100%;
 	height: 25vw;
 	display: flex;
 	align-items: center;
 	gap: 1rem;
-	padding-right: 1rem;
+	padding-inline: 1rem;
 
 	border-radius: 0.75rem;
 	overflow: hidden;
@@ -187,15 +202,15 @@ h2 {
 }
 
 .details {
+	font-size: 0.9em;
 	flex: 1;
-	padding: 0 1.5rem;
 	display: flex;
 	flex-direction: column;
 	gap: 0.25rem;
 }
 
 .name {
-	font-size: 0.9em;
+	font-size: 0.95em;
 	text-transform: uppercase;
 	letter-spacing: 1px;
 	font-weight: bold;
@@ -289,7 +304,7 @@ h2 {
 	letter-spacing: 1px;
 }
 
-.checkout {
+.complete {
 	cursor: pointer;
 	width: 100%;
 	display: block;

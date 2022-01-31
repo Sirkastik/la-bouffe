@@ -22,11 +22,16 @@
 					Enter something in the search bar...
 				</span>
 			</div>
-			<div v-else>
-				<app-loader />
-				<app-loader />
-				<app-loader />
-				<app-loader />
+			<div class="list" v-else>
+				<div class="result" v-for="result in results" :key="result.item.id">
+					<span class="icon" v-html="icon(result.item.category)"></span>
+					<span class="item-name">{{ result.item.name }}</span>
+					<span class="item-price">{{ result.item.price }}</span>
+					<span class="item-res">{{ result.item.restaurant }}</span>
+					<span class="atc" @click="$store.dispatch('addToCart',result.item)">
+						<i class="fas fa-cart-plus"></i>
+					</span>
+				</div>
 			</div>
 		</div>
 		<p class="back" @click="$router.back()">
@@ -36,9 +41,9 @@
 </template>
 
 <script>
-import AppLoader from "@/components/AppLoader.vue";
+import Fuse from "fuse.js";
+import { mapState } from "vuex";
 export default {
-	components: { AppLoader },
 	data() {
 		return {
 			searchQuery: "",
@@ -46,9 +51,32 @@ export default {
 		};
 	},
 
+	created() {
+		console.log(this.cart);
+	},
+
+	computed: {
+		...mapState(["menu", "cart"]),
+		results() {
+			return new Fuse(this.menu, {
+				keys: ["category", "restaurant", "name"],
+			}).search(this.searchQuery);
+		},
+		icons() {
+			return {
+				breakfast: "coffee",
+				dishes: "utensils",
+				drinks: "cocktail",
+				snacks: "hamburger",
+				desserts: "cookie",
+			};
+		},
+	},
+
 	methods: {
-		search() {
-			console.log(this.searchQuery);
+		icon(category) {
+			let icon = this.icons[category];
+			return `<i class="fas fa-${icon}"></i>`;
 		},
 	},
 
@@ -109,11 +137,11 @@ export default {
 	height: 73vh;
 	padding: 1rem;
 	border-radius: 0.5rem;
-	box-shadow: var(--shadow);
+	overflow: scroll;
 }
 
 .empty {
-	height: inherit;
+	height: 90%;
 	padding: 0 3rem;
 	display: flex;
 	justify-content: center;
@@ -136,5 +164,77 @@ export default {
 	text-transform: uppercase;
 	letter-spacing: 1px;
 	font-weight: bold;
+}
+
+.list {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	padding: 1rem 0;
+	width: 100%;
+	animation: slide 1s ease-in-out both;
+}
+
+@keyframes slide {
+	from {
+		transform: translateX(70vh);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+.result {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	box-shadow: var(--shadow);
+	height: 3rem;
+	border-radius: 0.25rem;
+
+	background: var(--color);
+	color: var(--main);
+	font-size: 0.8em;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	font-weight: bold;
+}
+
+.icon {
+	height: 3rem;
+	background: var(--color);
+	color: var(--main);
+	padding: 0 0.5rem;
+	display: grid;
+	place-content: center;
+	border-radius: 0.25rem 0 0 0.25rem;
+}
+
+.item-name {
+	margin-right: auto;
+	padding-left: 1rem;
+}
+
+.item-price {
+	flex-shrink: 1;
+	padding-right: 1rem;
+}
+
+.item-res {
+	width: 4rem;
+	font-size: 0.8em;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.atc {
+	height: 3rem;
+	background: var(--color);
+	color: var(--main);
+	padding: 0 0.5rem;
+	display: grid;
+	place-content: center;
+	border-radius: 0 0.25rem 0.25rem 0;
 }
 </style>

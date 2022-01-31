@@ -4,7 +4,6 @@
 			<img :src="info.photoUrl" alt="" />
 		</div>
 		<h3 v-if="info" class="title">{{ info.restaurantName }}</h3>
-		<!-- <span class="back"><i class="fas fa-arrow-left"></i></span> -->
 		<div class="back" @click="$router.push('/')">
 			<span class="down" style="--size: 2">
 				<i class="fas fa-chevron-down"></i>
@@ -19,60 +18,7 @@
 				<div class="name">{{ listName }}</div>
 				<span @click="next"><i class="fas fa-chevron-right"></i></span>
 			</h1>
-			<div class="list contents" v-if="listName === 'breakfast'">
-				<div
-					class="breakfast list-item"
-					v-for="item in breakfast"
-					:key="item.id"
-				>
-					<span class="icon"><i class="fas fa-coffee"></i></span>
-					<span class="item-name">{{ item.name }}</span>
-					<span class="item-price">Ksh.{{ item.price }}</span>
-					<span class="atc" @click="addToCart(item)">
-						<i class="fas fa-cart-plus"></i>
-					</span>
-				</div>
-			</div>
-			<div class="list contents" v-if="listName === 'dishes'">
-				<div class="dishes list-item" v-for="item in dishes" :key="item.id">
-					<span class="icon"><i class="fas fa-utensils"></i></span>
-					<span class="item-name">{{ item.name }}</span>
-					<span class="item-price">Ksh.{{ item.price }}</span>
-					<span class="atc" @click="addToCart(item)">
-						<i class="fas fa-cart-plus"></i>
-					</span>
-				</div>
-			</div>
-			<div class="list contents" v-if="listName === 'drinks'">
-				<div class="drinks list-item" v-for="item in drinks" :key="item.id">
-					<span class="icon"><i class="fas fa-cocktail"></i></span>
-					<span class="item-name">{{ item.name }}</span>
-					<span class="item-price">Ksh.{{ item.price }}</span>
-					<span class="atc" @click="addToCart(item)">
-						<i class="fas fa-cart-plus"></i>
-					</span>
-				</div>
-			</div>
-			<div class="list contents" v-if="listName === 'desserts'">
-				<div class="desserts list-item" v-for="item in desserts" :key="item.id">
-					<span class="icon"><i class="fas fa-cookie"></i></span>
-					<span class="item-name">{{ item.name }}</span>
-					<span class="item-price">Ksh.{{ item.price }}</span>
-					<span class="atc" @click="addToCart(item)">
-						<i class="fas fa-cart-plus"></i>
-					</span>
-				</div>
-			</div>
-			<div class="list contents" v-if="listName === 'snacks'">
-				<div class="snacks list-item" v-for="item in snacks" :key="item.id">
-					<span class="icon"><i class="fas fa-hamburger"></i></span>
-					<span class="item-name">{{ item.name }}</span>
-					<span class="item-price">Ksh.{{ item.price }}</span>
-					<span class="atc" @click="addToCart(item)">
-						<i class="fas fa-cart-plus"></i>
-					</span>
-				</div>
-			</div>
+			<food-list :list="currentList" :category="listName"></food-list>
 		</div>
 	</div>
 </template>
@@ -88,48 +34,47 @@ import {
 	where,
 } from "@/services/firebase";
 
+import FoodList from "@/components/FoodList";
+
 export default {
+	components: { FoodList },
+
 	data() {
 		return {
 			menu: [],
-			resDetails: {},
+			restaurantDetails: {},
 			categories: ["breakfast", "dishes", "drinks", "snacks", "desserts"],
 			chosen: 0,
-			cart: null,
 		};
 	},
 
 	async created() {
-		this.cart = JSON.parse(localStorage.getItem("foodCart"));
-		const resSnap = await getDoc(doc(db, "restaurants", this.id));
-		this.resDetails = resSnap.data();
+		const restaurantSnapShot = await getDoc(doc(db, "restaurants", this.id));
+		this.restaurantDetails = restaurantSnapShot.data();
 		await this.getMenu();
 	},
 
 	computed: {
+		foodList() {
+			return {
+				breakfast: this.menu.filter((item) => item.category === "breakfast"),
+				dishes: this.menu.filter((item) => item.category === "dishes"),
+				drinks: this.menu.filter((item) => item.category === "drinks"),
+				snacks: this.menu.filter((item) => item.category === "snacks"),
+				desserts: this.menu.filter((item) => item.category === "desserts"),
+			};
+		},
 		id() {
 			return this.$route.params.id;
 		},
 		info() {
-			return this.resDetails.info;
+			return this.restaurantDetails.info;
 		},
 		listName() {
 			return this.tabList[this.chosen];
 		},
-		breakfast() {
-			return this.menu.filter((item) => item.category === "breakfast");
-		},
-		dishes() {
-			return this.menu.filter((item) => item.category === "dishes");
-		},
-		snacks() {
-			return this.menu.filter((item) => item.category === "snacks");
-		},
-		desserts() {
-			return this.menu.filter((item) => item.category === "desserts");
-		},
-		drinks() {
-			return this.menu.filter((item) => item.category === "drinks");
+		currentList() {
+			return this.foodList[this.listName];
 		},
 		tabList() {
 			let list = [];
@@ -142,16 +87,8 @@ export default {
 	},
 
 	methods: {
-		getItems(document) {
-			const item = {
-				...document.data(),
-				id: document.id,
-			};
-			this.menu.unshift(item);
-		},
-
 		async getMenu() {
-			const menu = await Promise.all([
+			const responses = await Promise.all([
 				getDocs(query(collection(db, "dishes"), where("uid", "==", this.id))),
 				getDocs(
 					query(collection(db, "breakfast"), where("uid", "==", this.id))
@@ -160,7 +97,16 @@ export default {
 				getDocs(query(collection(db, "snacks"), where("uid", "==", this.id))),
 				getDocs(query(collection(db, "desserts"), where("uid", "==", this.id))),
 			]);
-			menu.forEach((query) => query.forEach(this.getItems));
+
+			responses.forEach((query) =>
+				query.forEach((document) => {
+					const item = {
+						...document.data(),
+						id: document.id,
+					};
+					this.menu.unshift(item);
+				})
+			);
 		},
 
 		next() {
@@ -172,32 +118,11 @@ export default {
 			if (this.chosen === 0) this.chosen = this.tabList.length - 1;
 			else this.chosen -= 1;
 		},
-
-		addToCart(item) {
-			const cart = this.cart ? this.addItem(item) : [item];
-			localStorage.setItem("foodCart", JSON.stringify(cart));
-		},
-
-		addItem(item) {
-			let cart = this.cart;
-			if (this.inCart(item)) return cart;
-			cart.push(item);
-			return cart;
-		},
-
-		inCart(newItem) {
-			return this.cart && this.cart.some((item) => item.id === newItem.id);
-		},
 	},
 };
 </script>
 
 <style scoped>
-.restPage {
-	text-align: center;
-	min-height: 100vh;
-}
-
 .img {
 	height: 30vh;
 	border-radius: 0 0 2rem 2rem;
@@ -299,68 +224,5 @@ h1 > span {
 .wrapper {
 	margin-top: 1.5rem;
 	padding: 1rem 1rem;
-}
-
-.list {
-	display: flex;
-	flex-direction: column;
-	gap: 1rem;
-	padding: 1rem 0;
-	width: 100%;
-	animation: slide 1s ease-in-out both;
-}
-
-@keyframes slide {
-	from {
-		transform: translateX(70vh);
-	}
-	to {
-		transform: translateX(0);
-	}
-}
-
-.list-item {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	box-shadow: var(--shadow);
-	height: 3rem;
-	border-radius: 0.25rem;
-
-	color: var(--lighter);
-	font-size: 0.8em;
-	text-transform: uppercase;
-	letter-spacing: 1px;
-	font-weight: bold;
-}
-
-.icon {
-	height: 3rem;
-	background: var(--color);
-	color: var(--main);
-	padding: 0 0.5rem;
-	display: grid;
-	place-content: center;
-	border-radius: 0.25rem 0 0 0.25rem;
-}
-
-.item-name {
-	margin-right: auto;
-	padding-left: 1rem;
-}
-
-.item-price {
-	flex-shrink: 1;
-	padding-right: 1rem;
-}
-
-.atc {
-	height: 3rem;
-	background: var(--color);
-	color: var(--main);
-	padding: 0 0.5rem;
-	display: grid;
-	place-content: center;
-	border-radius: 0 0.25rem 0.25rem 0;
 }
 </style>

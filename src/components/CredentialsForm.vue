@@ -1,24 +1,29 @@
 <template>
-	<div class="signin">
-		<form @submit.prevent="handleSubmit">
-			<h1>SIGN IN</h1>
-			<div class="form-control">
-				<label>Email</label>
-				<input type="email" v-model="email" required />
-				<span class="icon"><i class="fas fa-envelope"></i></span>
-			</div>
-			<div class="form-control">
-				<label>Password</label>
-				<input type="password" v-model="password" required />
-				<span class="icon"><i class="fas fa-lock"></i></span>
-			</div>
-			<button class="submitBtn">Sign In</button>
-			<div class="cta">
-				Dont have an account?
-				<span class="link" @click.prevent="$emit('switch')">Register</span>
-			</div>
-		</form>
-	</div>
+	<form @submit.prevent="handleSubmit">
+		<h1>SIGN UP</h1>
+		<div class="form-control">
+			<label>Email</label>
+			<input type="email" v-model="email" required />
+			<span class="icon"><i class="fas fa-envelope"></i></span>
+		</div>
+		<div class="form-control">
+			<label>Password</label>
+			<input type="password" v-model="password" required />
+			<span class="icon"><i class="fas fa-lock"></i></span>
+		</div>
+		<div class="form-control">
+			<label>Confirm Password</label>
+			<input type="password" v-model="confirmPassword" required />
+			<span class="icon"><i class="fas fa-lock"></i></span>
+		</div>
+		<button class="submitBtn">Sign Up</button>
+		<div class="cta">
+			Go back
+			<span class="link" @click.prevent="$emit('back')">
+				<i class="fas fa-arrow-alt-circle-left"></i>
+			</span>
+		</div>
+	</form>
 </template>
 
 <script>
@@ -26,54 +31,46 @@ export default {
 	data() {
 		return {
 			email: "",
-			password: '',
+			password: "",
+			confirmPassword: "",
 		};
 	},
+
 	methods: {
-		handleSubmit() {
-			if (this.validate() !== "") {
-				this.$toast.error(this.validate());
-			} else {
-				const credentials = {
-					email: this.email,
-					password: this.password,
-				};
-				this.handleLogin(credentials);
+		async handleSubmit() {
+			if (this.validate() !== "") this.$toast.error(this.validate());
+			else {
+				this.$toast.default("Signing up...", {
+					duration: 7000,
+				});
+				try {
+					await this.$store.dispatch("register", {
+						email: this.email,
+						password: this.password,
+					});
+					this.$toast.default("Signup successful...");
+					this.$emit("addRestaurant");
+				} catch (error) {
+					this.$toast.error("An error occurred...");
+					console.log(error);
+				}
 			}
 		},
 
 		validate() {
 			if (this.email == "" || this.password == "")
 				return "Enter all credentials please!";
+			if (this.password !== this.confirmPassword)
+				return "Passwords do not match!";
 			if (this.password.length < 6)
 				return "Password must be at least 6 characters";
 			return "";
-		},
-
-		async handleLogin(creds) {
-			try {
-				await this.$store.dispatch("login", creds);
-				this.$toast.success("Login successful...");
-				this.$router.push("/restaurant");
-			} catch (error) {
-				this.$toast.error("An error occurred...");
-				console.log(error);
-			}
 		},
 	},
 };
 </script>
 
 <style scoped>
-.signin {
-	width: 100vw;
-	height: 100vh;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	padding: 1.5rem 2rem;
-}
-
 h1 {
 	font-size: 1.5em;
 	font-weight: bold;

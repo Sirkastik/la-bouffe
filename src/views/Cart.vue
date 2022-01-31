@@ -118,8 +118,8 @@ export default {
 						orders: order.orders,
 						accepted: "pending",
 					});
-					const newOrderSnapshot = await getDoc(newOrderRef);
-					console.log(newOrderSnapShot.data());
+					await getDoc(newOrderRef);
+					this.$toast.default("Order is being processed...");
 				});
 			} catch (error) {
 				this.$toast.error("Error...");

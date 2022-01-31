@@ -4,29 +4,11 @@
 			<img id="logo" src="@/assets/logo.png" alt="AppLogo" />
 		</div>
 		<h3 class="name">La Bouffe</h3>
-		<div class="links">
-			<span class="search" v-if="show()">
-				<i class="fas fa-search"></i>
-			</span>
-			<span class="cart" v-if="show()">
-				<i class="fas fa-shopping-cart"></i>
-			</span>
-			<span class="link" @click="$router.push('/account')">
-				<i class="fas fa-external-link-alt"></i>
-			</span>
-		</div>
+		<span class="link" @click="$router.push('/account')">
+			<i class="fas fa-external-link-alt"></i>
+		</span>
 	</header>
 </template>
-
-<script>
-export default {
-	methods: {
-		show() {
-			return window.innerWidth > 600
-		}
-	}
-}
-</script>
 
 <style scoped>
 header {
@@ -50,14 +32,4 @@ header {
 img {
 	height: 100%;
 }
-
-.links {
-	display: flex;
-	gap: 1rem;
-}
-
-.links > span {
-	cursor: pointer;
-}
-
 </style>
